@@ -23,14 +23,16 @@ typedef struct expresion{
     union{
         string name;
         int value;
-};
+    };
 } expr_rec;
 
 extern token scanner(void);
 
-extern char token_buffer[64];
+char token_buffer[64];
 int token_buffer_index = 0;
-extern token current_token;
+token current_token;
+string symbolTable[64]; 
+int symTabIndex = 0;
 
 int compareToken(char a[], int size){
     if(size == token_buffer_index){
@@ -55,10 +57,10 @@ void buffer_char(char c){
 }
 
 token check_reserved(){
-    char a[5] = {'B','E','G','I','N'};
-    char b[3] = {'E','N','D'};
-    char c[4] = {'R','E','A','D'};
-    char d[5] = {'W','R','I','T','E'};
+    char a[] = {'B','E','G','I','N'};
+    char b[] = {'E','N','D'};
+    char c[] = {'R','E','A','D'};
+    char d[] = {'W','R','I','T','E'};
     if (compareToken(a, sizeof a))
     {
         return BEGIN;
@@ -156,6 +158,24 @@ void match(token t){
     }
 }
 
+int lookup(string s){
+    for(int i = 0; i<symTabIndex; i++){
+        if(!strcmp(s, symbolTable[i])){
+            return 1;
+        }
+        return 0;
+    }
+}
+
+void enter(string s){
+    strcpy(symbolTable[symTabIndex], s);
+    symTabIndex++;
+}
+
+void generate(string opcode, string operand1, string operand2, string result){
+    printf(opcode,operand1,operand2,result);
+}
+
 void check_id(string s)
 {
     if(!lookup(s)){
@@ -183,13 +203,37 @@ void finish(void){
     generate("Halt", "", "", "");
 }
 
+char* extract(expr_rec source){
+    char* str;
+    if (source.kind == LITERALEXPR)
+    {
+        int value = source.value;
+        sprintf(str, "%d", value);
+        return str;
+    } else
+    {
+        strcpy(str, source.name);
+        return str;
+    }
+}
+
+char* extract_op(op_rec op){
+    if (op.operator==MINUS)
+    {
+        return "SUB";
+    } else
+    {
+        return "ADD";
+    }
+}
+
 void assign(expr_rec target, expr_rec source){
     generate("Store", extract(source), target.name, "");
 }
 
 op_rec process_op(void){
     op_rec o;
-    if (token_buffer == PLUSOP)
+    if (current_token == PLUSOP)
         o.operator = PLUS;
     else 
         o.operator = MINUS;
@@ -201,8 +245,8 @@ expr_rec gen_infix(expr_rec e1, op_rec op, expr_rec e2)
     expr_rec e_rec;
     e_rec.kind = TEMPEXPR;
 
-    strcopy(e_rec.name, get_temp());
-    generate(extract(op), extract(e1), extract(e2), e_rec.name);
+    strcpy(e_rec.name, get_temp());
+    generate(extract_op(op), extract(e1), extract(e2), e_rec.name);
     return e_rec;
 }
 
@@ -230,33 +274,82 @@ void write_expr(expr_rec out_expr)
     generate("Write", extract(out_expr), "Integer", "");
 }
 
-void program(void){
-    start();
-    match(BEGIN);
-    statement_list();
-    match(END);
+token next_token(){
+    
 }
 
-void system_global(void){
-    program();
-    match(SCANEOF);
-    finish();
+void ident(expr_rec *t){
+    match(ID);
+    *t = process_id();
 }
 
-void statement_list(void){
-    statement();
-    while (TRUE){
-        switch (next_token()){
-        case ID:
-        case READ:
-        case WRITE:
-            statement();
-            break;
-        default:
-            return;
-        }
+void syntax_error(token t){
+    printf("Syntax error");
+}
+
+void primary(expr_rec *e_rec){
+    token tok = next_token();
+    switch(tok){
+    case LPAREN:
+        match(LPAREN); //expression();
+        match(RPAREN);
+        break;
+    case ID:
+        ident(&*e_rec);
+        break;
+    case INTLITERAL:
+        match(INTLITERAL);
+        *e_rec = process_literal();
+        break;
+    default:
+        syntax_error(tok);
+        break;
     }
 }
+
+void add_op(op_rec *op){
+    token tok = next_token();
+    if (tok == PLUSOP || tok == MINUSOP){
+        match(tok);
+        *op = process_op();
+    }
+    else
+        syntax_error(tok);
+}
+
+void expression (expr_rec *result) {
+    expr_rec left_operand, right_operand;
+    op_rec op;
+
+    primary(& left_operand);
+    while(next_token() == PLUSOP || next_token() == MINUSOP ){
+        add_op(& op);
+        primary(& right_operand);
+        left_operand = gen_infix(left_operand, op, right_operand);
+    }
+    *result = left_operand;
+}
+
+void id_list(void){
+    match(ID);
+    
+    while(next_token()==COMMA){
+        match(COMMA);
+        match(ID);
+    }
+}
+
+
+void expr_list(void){
+    /*
+    expression();
+    while (next_token() == COMMA){
+        match(COMMA);
+        expression();
+    }
+    */
+}
+
 
 void statement (void)
 {
@@ -290,69 +383,37 @@ void statement (void)
     }
 }
 
-void ident(expr_rec *t){
-    match(ID);
-    *t = process_id();
-}
-
-void id_list(void){
-    match(ID);
-    
-    while(next_token()==COMMA){
-        match(COMMA);
-        match(ID);
+void statement_list(void){
+    statement();
+    while (TRUE){
+        switch (next_token()){
+        case ID:
+        case READ:
+        case WRITE:
+            statement();
+            break;
+        default:
+            return;
+        }
     }
 }
 
-void expression (expr_rec *result) {
-    expr_rec left_operand, right_operand;
-    op_rec op;
-
-    primary(& left_operand);
-    while(next_token() == PLUSOP || next_token() == MINUSOP ){
-        add_op(& op);
-        primary(& right_operand);
-        left_operand = gen_infix(left_operand, op, right_operand);
-    }
-    *result = left_operand;
+void program(void){
+    start();
+    match(BEGIN);
+    statement_list();
+    match(END);
 }
 
-/*
-void expr_list(void){
-    expression();
-    while (next_token() == COMMA){
-        match(COMMA);
-        expression();
-    }
-}
-*/
-
-void add_op(op_rec *op){
-    token tok = next_token();
-    if (tok == PLUSOP || tok == MINUSOP){
-        match(tok);
-        *op = process_op();
-    }
-    else
-        syntax_error(tok);
+void system_global(void){
+    program();
+    match(SCANEOF);
+    finish();
 }
 
-void primary(expr_rec *e_rec){
-    token tok = next_token();
-    switch(tok){
-    case LPAREN:
-        match(LPAREN); //expression();
-        match(RPAREN);
-        break;
-    case ID:
-        ident(&e_rec);
-        break;
-    case INTLITERAL:
-        match(INTLITERAL);
-        *e_rec = process_literal();
-        break;
-    default:
-        syntax_error(tok);
-        break;
-    }
+int main()
+{
+    printf("Hello World");
+
+    return 0;
 }
