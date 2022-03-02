@@ -66,7 +66,6 @@ token check_reserved(){
     char d[] = {'w','r','i','t','e'};
     if (compareToken(a, sizeof a))
     {
-        printf("Madera\n");
         return BEGIN;
     } else if (compareToken(b, sizeof b))
     {
@@ -102,13 +101,14 @@ token scanner(void){
         return SCANEOF;
 
     while ((in_char = getc(micro_code)) != EOF){
-        if(isspace(in_char))
+        printf("%d\n",in_char);
+        if(isspace(in_char) || in_char == 0)
             continue; 
         else if (isalpha(in_char)){
             buffer_char(in_char);
             for (c = getc(micro_code); isalnum(c) || c == '_'; c = getc(micro_code)) 
                 buffer_char(c);
-            printf("%s\n",token_buffer);
+            printf("%s\n",token_buffer);//test
             ungetc(c, micro_code);
             return check_reserved();
         }
@@ -159,7 +159,8 @@ void match(token t){
         current_token = t;
     } else
     {
-        printf("The token is not allowed.\n");
+        printf("Token not allowed.\n");
+        exit(-1);
     }
 }
 
@@ -178,7 +179,14 @@ void enter(string s){
 }
 
 void generate(string opcode, string operand1, string operand2, string result){
-    printf(opcode,operand1,operand2,result);
+    printf("%s ", opcode);
+    if(operand1!="")
+        printf("%s", operand1);
+    if(operand2!="")
+        printf(",%s", operand2);
+    if(result!="")
+        printf(",%s", result);
+    printf("\n");
 }
 
 void check_id(string s)
@@ -270,6 +278,7 @@ expr_rec process_id(void){
     check_id(token_buffer);
     t.kind = IDEXPR;
     strcpy(t.name, token_buffer);
+    //printf("t.name %s \n", t.name);
     return t;
 }
 
@@ -285,8 +294,26 @@ void write_expr(expr_rec out_expr)
     generate("Write", extract(out_expr), "Integer", "");
 }
 
-token next_token(){
-    
+token next_token(void){
+    int in_char,c;
+    clear_buffer();
+    if (current_token == BEGIN || current_token == SEMICOLON)
+    {
+        while ((in_char = getc(micro_code)) != ';')
+        {
+            if(isspace(in_char)) 
+                continue; 
+            else if (isalpha(in_char)){
+                buffer_char(in_char);
+                for (c = getc(micro_code); isalnum(c) || c == '_'; c = getc(micro_code))
+                    buffer_char(c);
+                for (int i = token_buffer_index; i >= 0; i--)
+                    ungetc(token_buffer[i], micro_code);
+                //printf("NEXT %s\n",token_buffer);//test
+                return check_reserved();
+            }
+        }
+    }
 }
 
 void ident(expr_rec *t){
@@ -296,6 +323,7 @@ void ident(expr_rec *t){
 
 void syntax_error(token t){
     printf("Syntax error \n");
+    exit(-1);
 }
 
 void primary(expr_rec *e_rec){
@@ -369,7 +397,9 @@ void statement (void)
     switch (tok){
     case ID:
         ident(&e_rec);
+        //printf("erec %s\n", e_rec.name);
         match(ASSIGNOP);
+        //printf("erec %s\n", e_rec.name);
         expression(&result);
         assign(e_rec, result);
         match(SEMICOLON);
