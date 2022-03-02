@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdlib.h>
 
 #define MAXIDLEN 33
 
@@ -33,6 +34,8 @@ int token_buffer_index = 0;
 token current_token;
 string symbolTable[64]; 
 int symTabIndex = 0;
+FILE *micro_code;
+FILE *x86_code;
 
 int compareToken(char a[], int size){
     if(size == token_buffer_index){
@@ -57,12 +60,13 @@ void buffer_char(char c){
 }
 
 token check_reserved(){
-    char a[] = {'B','E','G','I','N'};
-    char b[] = {'E','N','D'};
-    char c[] = {'R','E','A','D'};
-    char d[] = {'W','R','I','T','E'};
+    char a[] = {'b','e','g','i','n'};
+    char b[] = {'e','n','d'};
+    char c[] = {'r','e','a','a'};
+    char d[] = {'w','r','i','t','e'};
     if (compareToken(a, sizeof a))
     {
+        printf("Madera\n");
         return BEGIN;
     } else if (compareToken(b, sizeof b))
     {
@@ -82,10 +86,10 @@ token check_reserved(){
 void lexical_error(char in_char){
     if (in_char == ':')
     {
-        printf("The character %c is only valid on assignments.", in_char);
+        printf("The character %c is only valid on assignments. \n", in_char);
     } else
     {
-        printf("The character %c is not allowed.", in_char);
+        printf("The character %c is not allowed. \n", in_char);
     }
     
 }
@@ -94,24 +98,25 @@ token scanner(void){
     int in_char, c;
 
     clear_buffer();
-    if(feof(stdin))
+    if(feof(micro_code))
         return SCANEOF;
 
-    while ((in_char = getchar()) != EOF){
+    while ((in_char = getc(micro_code)) != EOF){
         if(isspace(in_char))
             continue; 
         else if (isalpha(in_char)){
             buffer_char(in_char);
-            for (c = getchar(); isalnum(c) || c == '_'; c = getchar()) 
+            for (c = getc(micro_code); isalnum(c) || c == '_'; c = getc(micro_code)) 
                 buffer_char(c);
-            ungetc(c, stdin);
+            printf("%s\n",token_buffer);
+            ungetc(c, micro_code);
             return check_reserved();
         }
         else if (isdigit(in_char)){
             buffer_char(in_char);
-            for (c = getchar(); isdigit(c); c = getchar()) 
+            for (c = getc(micro_code); isdigit(c); c = getc(micro_code)) 
                 buffer_char(c);
-            ungetc(c, stdin);
+            ungetc(c, micro_code);
             return INTLITERAL;
         }
         else if (in_char == '(')
@@ -125,21 +130,21 @@ token scanner(void){
         else if (in_char == '+')
             return PLUSOP;
         else if (in_char == ':'){
-            c = getchar();
+            c = getc(micro_code);
             if (c == '=')
                 return ASSIGNOP;
             else {
-                ungetc(c, stdin);
+                ungetc(c, micro_code);
                 lexical_error(in_char);
             }
         } else if (in_char == '-') {
-            c = getchar();
+            c = getc(micro_code);
             if (c == '-'){
                 do
-                    in_char = getchar();
+                    in_char = getc(micro_code);
                 while (in_char != '\n');
             } else {
-                ungetc(c, stdin);
+                ungetc(c, micro_code);
                 return MINUSOP;
             }
         } else
@@ -154,7 +159,7 @@ void match(token t){
         current_token = t;
     } else
     {
-        printf("The token is not allowed.");
+        printf("The token is not allowed.\n");
     }
 }
 
@@ -196,7 +201,13 @@ char *get_temp(void)
 }
 
 void start(void){
-    /*Semantic initializationMAs, none needed. */
+    /*Semantic initializations. */
+    micro_code = fopen("code", "r");
+    x86_code = fopen("x86code", "w");
+    if (micro_code == NULL || x86_code == NULL){
+        printf("Error! Could not open file\n");
+        exit(-1);
+    }
 }
 
 void finish(void){
@@ -284,7 +295,7 @@ void ident(expr_rec *t){
 }
 
 void syntax_error(token t){
-    printf("Syntax error");
+    printf("Syntax error \n");
 }
 
 void primary(expr_rec *e_rec){
@@ -413,7 +424,18 @@ void system_global(void){
 
 int main()
 {
-    printf("Hello World");
-
+    /*
+    char c;
+    c = fgetc(micro_code);
+    while (c != EOF)
+    {
+        printf("%c",c);
+        c=fgetc(micro_code);
+    }
+    fclose(x86_code);
+    fclose(micro_code);*/
+    
+    //printf(&micro_code);
+    system_global();
     return 0;
 }
