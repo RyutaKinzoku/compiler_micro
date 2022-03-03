@@ -19,7 +19,7 @@ typedef struct operator{
 
 enum expr {IDEXPR, LITERALEXPR, TEMPEXPR};
 
-typedef struct expresion{
+typedef struct expression{
     enum expr kind;
     union{
         string name;
@@ -37,6 +37,7 @@ int symTabIndex = 0;
 FILE *micro_code;
 FILE *x86_code;
 
+//Right
 int compareToken(char a[], int size){
     if(size == token_buffer_index){
         for(int i = 0; i<size; i++){
@@ -49,16 +50,22 @@ int compareToken(char a[], int size){
     }
 }
 
+
+//Right
 void clear_buffer(void){
     memset(token_buffer, 0, sizeof token_buffer);
     token_buffer_index = 0;
 }
 
+
+//Right
 void buffer_char(char c){
     token_buffer[token_buffer_index] = c;
     token_buffer_index++;
 }
 
+
+//Right
 token check_reserved(){
     char a[] = {'b','e','g','i','n'};
     char b[] = {'e','n','d'};
@@ -82,6 +89,7 @@ token check_reserved(){
     }
 }
 
+//Right
 void lexical_error(char in_char){
     if (in_char == ':')
     {
@@ -90,9 +98,11 @@ void lexical_error(char in_char){
     {
         printf("The character %c is not allowed. \n", in_char);
     }
+    exit(-1);
     
 }
 
+//Right
 token scanner(void){
     int in_char, c;
 
@@ -101,14 +111,14 @@ token scanner(void){
         return SCANEOF;
 
     while ((in_char = getc(micro_code)) != EOF){
-        printf("%d\n",in_char);
+        //printf("%d\n",in_char);//test
         if(isspace(in_char) || in_char == 0)
             continue; 
         else if (isalpha(in_char)){
             buffer_char(in_char);
             for (c = getc(micro_code); isalnum(c) || c == '_'; c = getc(micro_code)) 
                 buffer_char(c);
-            printf("%s\n",token_buffer);//test
+            //printf("%s\n",token_buffer);//test
             ungetc(c, micro_code);
             return check_reserved();
         }
@@ -152,6 +162,8 @@ token scanner(void){
     }
 }
 
+
+//Right
 void match(token t){
     token s = scanner();
     if (t == s)
@@ -164,6 +176,7 @@ void match(token t){
     }
 }
 
+//Right
 int lookup(string s){
     for(int i = 0; i<symTabIndex; i++){
         if(!strcmp(s, symbolTable[i])){
@@ -173,11 +186,13 @@ int lookup(string s){
     }
 }
 
+//Right
 void enter(string s){
     strcpy(symbolTable[symTabIndex], s);
     symTabIndex++;
 }
 
+//Right
 void generate(string opcode, string operand1, string operand2, string result){
     printf("%s ", opcode);
     if(operand1!="")
@@ -189,6 +204,7 @@ void generate(string opcode, string operand1, string operand2, string result){
     printf("\n");
 }
 
+//Right
 void check_id(string s)
 {
     if(!lookup(s)){
@@ -197,6 +213,7 @@ void check_id(string s)
     }
 }
 
+//Right
 char *get_temp(void)
 {
     static int max_temp = 0;
@@ -208,6 +225,7 @@ char *get_temp(void)
     return tempname;
 }
 
+//Right
 void start(void){
     /*Semantic initializations. */
     micro_code = fopen("code", "r");
@@ -218,12 +236,13 @@ void start(void){
     }
 }
 
+//Right
 void finish(void){
     generate("Halt", "", "", "");
 }
 
 char* extract(expr_rec source){
-    char* str;
+    static char str[MAXIDLEN];
     if (source.kind == LITERALEXPR)
     {
         int value = source.value;
@@ -250,6 +269,7 @@ void assign(expr_rec target, expr_rec source){
     generate("Store", extract(source), target.name, "");
 }
 
+//Right
 op_rec process_op(void){
     op_rec o;
     if (current_token == PLUSOP)
@@ -265,7 +285,11 @@ expr_rec gen_infix(expr_rec e1, op_rec op, expr_rec e2)
     e_rec.kind = TEMPEXPR;
 
     strcpy(e_rec.name, get_temp());
-    generate(extract_op(op), extract(e1), extract(e2), e_rec.name);
+    string o, ep1, ep2;
+    strcpy(o, extract_op(op));
+    strcpy(ep1, extract(e1));
+    strcpy(ep2, extract(e2));
+    generate(o, ep1, ep2, e_rec.name);
     return e_rec;
 }
 
@@ -273,15 +297,16 @@ void read_id(expr_rec in_var){
     generate("Read", in_var.name, "Integer", "");
 }
 
+//Right
 expr_rec process_id(void){
     expr_rec t;
     check_id(token_buffer);
     t.kind = IDEXPR;
     strcpy(t.name, token_buffer);
-    //printf("t.name %s \n", t.name);
     return t;
 }
 
+//Right
 expr_rec process_literal(void){
     expr_rec t;
     t.kind = LITERALEXPR;
@@ -294,33 +319,57 @@ void write_expr(expr_rec out_expr)
     generate("Write", extract(out_expr), "Integer", "");
 }
 
+//Maybe
 token next_token(void){
     int in_char,c;
     clear_buffer();
-    if (current_token == BEGIN || current_token == SEMICOLON)
+    while ((in_char = getc(micro_code)) != ';')
     {
-        while ((in_char = getc(micro_code)) != ';')
+        if (isspace(in_char) || in_char == 0)
+            continue;
+        else if (isalpha(in_char))
         {
-            if(isspace(in_char)) 
-                continue; 
-            else if (isalpha(in_char)){
-                buffer_char(in_char);
-                for (c = getc(micro_code); isalnum(c) || c == '_'; c = getc(micro_code))
-                    buffer_char(c);
-                for (int i = token_buffer_index; i >= 0; i--)
-                    ungetc(token_buffer[i], micro_code);
-                //printf("NEXT %s\n",token_buffer);//test
-                return check_reserved();
-            }
+            buffer_char(in_char);
+            for (c = getc(micro_code); isalnum(c) || c == '_'; c = getc(micro_code))
+                buffer_char(c);
+            for (int i = token_buffer_index; i >= 0; i--)
+                ungetc(token_buffer[i], micro_code);
+            // printf("NEXT %s\n",token_buffer);//test
+            return check_reserved();
+        }else if (in_char == '('){
+            ungetc(in_char, micro_code);
+            return LPAREN;
+        }
+        else if (isdigit(in_char))
+        {
+            buffer_char(in_char);
+            for (c = getc(micro_code); isdigit(c); c = getc(micro_code)) 
+                buffer_char(c);
+            ungetc(c, micro_code);
+            for (int i = token_buffer_index; i >= 0; i--)
+                ungetc(token_buffer[i], micro_code);
+            // printf("NEXT %s\n",token_buffer);//test
+            return INTLITERAL;
+        }else if (in_char == '+'){
+            ungetc(in_char, micro_code);
+            return PLUSOP;
+        }else if (in_char == '-'){
+            ungetc(in_char, micro_code);
+            return MINUSOP;
+        } else{
+            ungetc(in_char, micro_code);
+            return;
         }
     }
 }
 
+//Right
 void ident(expr_rec *t){
     match(ID);
     *t = process_id();
 }
 
+//Right
 void syntax_error(token t){
     printf("Syntax error \n");
     exit(-1);
@@ -330,7 +379,7 @@ void primary(expr_rec *e_rec){
     token tok = next_token();
     switch(tok){
     case LPAREN:
-        match(LPAREN); //expression();
+        match(LPAREN); //expression(&*e_rec);
         match(RPAREN);
         break;
     case ID:
@@ -346,6 +395,7 @@ void primary(expr_rec *e_rec){
     }
 }
 
+//Right
 void add_op(op_rec *op){
     token tok = next_token();
     if (tok == PLUSOP || tok == MINUSOP){
@@ -399,8 +449,8 @@ void statement (void)
         ident(&e_rec);
         //printf("erec %s\n", e_rec.name);
         match(ASSIGNOP);
-        //printf("erec %s\n", e_rec.name);
         expression(&result);
+        printf("erec %s\n", e_rec.name);
         assign(e_rec, result);
         match(SEMICOLON);
         break;
@@ -452,6 +502,7 @@ void system_global(void){
     finish();
 }
 
+//Right
 int main()
 {
     /*
