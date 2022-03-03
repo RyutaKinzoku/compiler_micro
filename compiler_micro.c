@@ -71,6 +71,7 @@ token check_reserved(){
     char b[] = {'e','n','d'};
     char c[] = {'r','e','a','a'};
     char d[] = {'w','r','i','t','e'};
+    char e[] = {'S','C','A','N','E','O','F'};
     if (compareToken(a, sizeof a))
     {
         return BEGIN;
@@ -83,8 +84,10 @@ token check_reserved(){
     } else if (compareToken(d, sizeof d))
     {
         return WRITE;
-    } else
+    } else if (compareToken(e, sizeof e))
     {
+        return SCANEOF;
+    } else {
         return ID;
     }
 }
@@ -111,14 +114,12 @@ token scanner(void){
         return SCANEOF;
 
     while ((in_char = getc(micro_code)) != EOF){
-        //printf("%d\n",in_char);//test
         if(isspace(in_char) || in_char == 0)
             continue; 
         else if (isalpha(in_char)){
             buffer_char(in_char);
             for (c = getc(micro_code); isalnum(c) || c == '_'; c = getc(micro_code)) 
                 buffer_char(c);
-            //printf("%s\n",token_buffer);//test
             ungetc(c, micro_code);
             return check_reserved();
         }
@@ -166,6 +167,7 @@ token scanner(void){
 //Right
 void match(token t){
     token s = scanner();
+    
     if (t == s)
     {
         current_token = t;
@@ -265,6 +267,7 @@ char* extract_op(op_rec op){
     }
 }
 
+//Right
 void assign(expr_rec target, expr_rec source){
     generate("Store", extract(source), target.name, "");
 }
@@ -279,6 +282,7 @@ op_rec process_op(void){
     return o;
 }
 
+//Right
 expr_rec gen_infix(expr_rec e1, op_rec op, expr_rec e2)
 {
     expr_rec e_rec;
@@ -323,18 +327,20 @@ void write_expr(expr_rec out_expr)
 token next_token(void){
     int in_char,c;
     clear_buffer();
-    while ((in_char = getc(micro_code)) != ';')
+    while ((in_char = getc(micro_code)) != EOF)
     {
         if (isspace(in_char) || in_char == 0)
             continue;
         else if (isalpha(in_char))
         {
             buffer_char(in_char);
-            for (c = getc(micro_code); isalnum(c) || c == '_'; c = getc(micro_code))
+            for (c = getc(micro_code); isalnum(c) || c == '_'; c = getc(micro_code)){
                 buffer_char(c);
-            for (int i = token_buffer_index; i >= 0; i--)
+            }
+            ungetc(c, micro_code);
+            for (int i = token_buffer_index-1; i >= 0; i--){
                 ungetc(token_buffer[i], micro_code);
-            // printf("NEXT %s\n",token_buffer);//test
+            }
             return check_reserved();
         }else if (in_char == '('){
             ungetc(in_char, micro_code);
@@ -346,9 +352,9 @@ token next_token(void){
             for (c = getc(micro_code); isdigit(c); c = getc(micro_code)) 
                 buffer_char(c);
             ungetc(c, micro_code);
-            for (int i = token_buffer_index; i >= 0; i--)
+            for (int i = token_buffer_index-1; i >= 0; i--){
                 ungetc(token_buffer[i], micro_code);
-            // printf("NEXT %s\n",token_buffer);//test
+            }
             return INTLITERAL;
         }else if (in_char == '+'){
             ungetc(in_char, micro_code);
@@ -447,10 +453,8 @@ void statement (void)
     switch (tok){
     case ID:
         ident(&e_rec);
-        //printf("erec %s\n", e_rec.name);
         match(ASSIGNOP);
         expression(&result);
-        printf("erec %s\n", e_rec.name);
         assign(e_rec, result);
         match(SEMICOLON);
         break;
