@@ -1,5 +1,4 @@
 begin 
-A := BB - 314 + A; 
-C := D - 84 + J; 
+W := BB - A + (314 + A);
 end 
 SCANEOF

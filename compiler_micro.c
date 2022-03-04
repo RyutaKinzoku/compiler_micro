@@ -184,8 +184,8 @@ int lookup(string s){
         if(!strcmp(s, symbolTable[i])){
             return 1;
         }
-        return 0;
     }
+    return 0;
 }
 
 //Right
@@ -385,7 +385,8 @@ void primary(expr_rec *e_rec){
     token tok = next_token();
     switch(tok){
     case LPAREN:
-        match(LPAREN); //expression(&*e_rec);
+        match(LPAREN);
+        expression(&*e_rec);
         match(RPAREN);
         break;
     case ID:
@@ -412,6 +413,7 @@ void add_op(op_rec *op){
         syntax_error(tok);
 }
 
+//Right
 void expression (expr_rec *result) {
     expr_rec left_operand, right_operand;
     op_rec op;
