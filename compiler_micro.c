@@ -69,7 +69,7 @@ void buffer_char(char c){
 token check_reserved(){
     char a[] = {'b','e','g','i','n'};
     char b[] = {'e','n','d'};
-    char c[] = {'r','e','a','a'};
+    char c[] = {'r','e','a','d'};
     char d[] = {'w','r','i','t','e'};
     char e[] = {'S','C','A','N','E','O','F'};
     if (compareToken(a, sizeof a))
@@ -359,9 +359,12 @@ token next_token(void){
         }else if (in_char == '+'){
             ungetc(in_char, micro_code);
             return PLUSOP;
-        }else if (in_char == '-'){
+        } else if (in_char == '-'){
             ungetc(in_char, micro_code);
             return MINUSOP;
+        } else if (in_char == ','){
+            ungetc(in_char, micro_code);
+            return COMMA;
         } else{
             ungetc(in_char, micro_code);
             return;
@@ -428,23 +431,27 @@ void expression (expr_rec *result) {
 }
 
 void id_list(void){
-    match(ID);
+    expr_rec e_rec;
+    ident(&e_rec);
+    read_id(e_rec);
     
     while(next_token()==COMMA){
         match(COMMA);
-        match(ID);
+        ident(&e_rec);
+        read_id(e_rec);
     }
 }
 
 
 void expr_list(void){
-    /*
-    expression();
+    expr_rec e_rec;
+    expression(&e_rec);
+    write_expr(e_rec);
     while (next_token() == COMMA){
         match(COMMA);
-        expression();
+        expression(&e_rec);
+        write_expr(e_rec);
     }
-    */
 }
 
 
