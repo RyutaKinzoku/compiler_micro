@@ -286,14 +286,26 @@ op_rec process_op(void){
 expr_rec gen_infix(expr_rec e1, op_rec op, expr_rec e2)
 {
     expr_rec e_rec;
-    e_rec.kind = TEMPEXPR;
-
-    strcpy(e_rec.name, get_temp());
-    string o, ep1, ep2;
-    strcpy(o, extract_op(op));
-    strcpy(ep1, extract(e1));
-    strcpy(ep2, extract(e2));
-    generate(o, ep1, ep2, e_rec.name);
+    if (e1.kind == LITERALEXPR && e2.kind == LITERALEXPR)
+    {
+        e_rec.kind = LITERALEXPR;
+        if (op.operator == PLUS)
+        {
+            e_rec.value = e1.value + e2.value;
+        } else
+        {
+            e_rec.value = e1.value - e2.value;
+        }
+    } else
+    {
+        e_rec.kind = TEMPEXPR;
+        strcpy(e_rec.name, get_temp());
+        string o, ep1, ep2;
+        strcpy(o, extract_op(op));
+        strcpy(ep1, extract(e1));
+        strcpy(ep2, extract(e2));
+        generate(o, ep1, ep2, e_rec.name);
+    }
     return e_rec;
 }
 
@@ -418,6 +430,18 @@ void add_op(op_rec *op){
 
 //Right
 void expression (expr_rec *result) {
+    /*
+    token t = next_token();
+    switch (t)
+    {
+    case // constant-expression :
+        // code 
+        break;
+    
+    default:
+        break;
+    }
+    */
     expr_rec left_operand, right_operand;
     op_rec op;
 
@@ -428,6 +452,7 @@ void expression (expr_rec *result) {
         left_operand = gen_infix(left_operand, op, right_operand);
     }
     *result = left_operand;
+
 }
 
 void id_list(void){
