@@ -1,7 +1,6 @@
 begin 
-A := -1;
---R := (f|b|e);
---E := (f+e)-e;
+R := (1|2|3);
+E := (1+e)-e;
 --write((a|b|c));
 end 
 SCANEOF

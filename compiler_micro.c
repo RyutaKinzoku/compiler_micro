@@ -9,7 +9,7 @@ typedef enum {FALSE = 0, TRUE} boolean;
 typedef enum token_types {
     BEGIN, END, READ, WRITE, ID, INTLITERAL, 
     LPAREN, RPAREN, SEMICOLON, COMMA, ASSIGNOP,
-    PLUSOP, MINUSOP, SCANEOF
+    PLUSOP, MINUSOP, IFOP, SCANEOF
 } token;
 typedef char string [MAXIDLEN];
 
@@ -140,6 +140,8 @@ token scanner(void){
             return COMMA;
         else if (in_char == '+')
             return PLUSOP;
+        else if (in_char == '|')
+            return IFOP;
         else if (in_char == ':'){
             c = getc(micro_code);
             if (c == '=')
@@ -286,6 +288,7 @@ op_rec process_op(void){
 expr_rec gen_infix(expr_rec e1, op_rec op, expr_rec e2)
 {
     expr_rec e_rec;
+    // Constant folding
     if (e1.kind == LITERALEXPR && e2.kind == LITERALEXPR)
     {
         e_rec.kind = LITERALEXPR;
@@ -355,8 +358,20 @@ token next_token(void){
             }
             return check_reserved();
         }else if (in_char == '('){
-            ungetc(in_char, micro_code);
-            return LPAREN;
+            token t = LPAREN;
+            buffer_char(in_char);
+            for (c = getc(micro_code); c != '(' || c != ')'; c = getc(micro_code)){
+                if (c == '|')
+                {
+                    t = IFOP;
+                }
+                buffer_char(c);
+            }
+            ungetc(c, micro_code);
+            for (int i = token_buffer_index-1; i >= 0; i--){
+                ungetc(token_buffer[i], micro_code);
+            }
+            return t;
         }
         else if (isdigit(in_char))
         {
@@ -428,31 +443,54 @@ void add_op(op_rec *op){
         syntax_error(tok);
 }
 
+expr_rec gen_if(expr_rec condition, expr_rec then_case, expr_rec else_case){
+    expr_rec e_rec;
+    e_rec.kind = TEMPEXPR;
+    strcpy(e_rec.name, get_temp());
+
+        string o, ep1, ep2;
+        strcpy(o, extract_op(op));
+        strcpy(ep1, extract(e1));
+        strcpy(ep2, extract(e2));
+        generate(o, ep1, ep2, e_rec.name);
+    return e_rec;
+}
+
 //Right
 void expression (expr_rec *result) {
-    /*
     token t = next_token();
     switch (t)
     {
-    case // constant-expression :
-        // code 
+    case IFOP:
+        expr_rec condition, then_case, else_case;
+        match(LPAREN);
+        match(INTLITERAL);
+        condition = process_literal();
+        match(IFOP);
+        match(INTLITERAL);
+        then_case = process_literal();
+        match(IFOP);
+        match(INTLITERAL);
+        else_case = process_literal();
+        match(RPAREN);
         break;
-    
+    case ID:
+    case INTLITERAL:
+    case LPAREN:
+        expr_rec left_operand, right_operand;
+        op_rec op;
+
+        primary(& left_operand);
+        while(next_token() == PLUSOP || next_token() == MINUSOP ){
+            add_op(& op);
+            primary(& right_operand);
+            left_operand = gen_infix(left_operand, op, right_operand);
+        }
+        *result = left_operand;
+        break;
     default:
         break;
     }
-    */
-    expr_rec left_operand, right_operand;
-    op_rec op;
-
-    primary(& left_operand);
-    while(next_token() == PLUSOP || next_token() == MINUSOP ){
-        add_op(& op);
-        primary(& right_operand);
-        left_operand = gen_infix(left_operand, op, right_operand);
-    }
-    *result = left_operand;
-
 }
 
 void id_list(void){
