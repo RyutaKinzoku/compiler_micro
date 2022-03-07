@@ -360,7 +360,7 @@ token next_token(void){
         }else if (in_char == '('){
             token t = LPAREN;
             buffer_char(in_char);
-            for (c = getc(micro_code); c != '(' || c != ')'; c = getc(micro_code)){
+            for (c = getc(micro_code); !(c != '(' ^ c != ')'); c = getc(micro_code)){
                 if (c == '|')
                 {
                     t = IFOP;
@@ -443,26 +443,41 @@ void add_op(op_rec *op){
         syntax_error(tok);
 }
 
+char* get_label(string text){
+    static int max_label = 0;
+    if(!strcmp(text, "continue"))
+        max_label++;
+    sprintf(text, strcat(text, "%d"), max_label);
+    return text;
+}
+
 expr_rec gen_if(expr_rec condition, expr_rec then_case, expr_rec else_case){
     expr_rec e_rec;
+    string then_if, else_if, continue_if;
     e_rec.kind = TEMPEXPR;
     strcpy(e_rec.name, get_temp());
-
-        string o, ep1, ep2;
-        strcpy(o, extract_op(op));
-        strcpy(ep1, extract(e1));
-        strcpy(ep2, extract(e2));
-        generate(o, ep1, ep2, e_rec.name);
+    strcpy(then_if, get_label("then"));
+    strcpy(else_if, get_label("else"));
+    strcpy(continue_if, get_label("continue"));
+    generate("Cmp", extract(condition), "0", "");
+    generate("Jnz", then_if, "", "");
+    generate("Jmp", else_if, "", "");
+    generate(strcat(then_if, ":"), extract(then_case), e_rec.name, "");
+    generate("Jmp", continue_if, "", "");
+    generate(strcat(else_if, ":"), extract(else_case), e_rec.name, "");
+    generate(strcat(continue_if, ":"), "", "", "");
     return e_rec;
 }
 
 //Right
 void expression (expr_rec *result) {
     token t = next_token();
+    expr_rec condition, then_case, else_case;
+    expr_rec left_operand, right_operand;
+    op_rec op;
     switch (t)
     {
     case IFOP:
-        expr_rec condition, then_case, else_case;
         match(LPAREN);
         match(INTLITERAL);
         condition = process_literal();
@@ -473,13 +488,11 @@ void expression (expr_rec *result) {
         match(INTLITERAL);
         else_case = process_literal();
         match(RPAREN);
+        *result = gen_if(condition, then_case, else_case);
         break;
     case ID:
     case INTLITERAL:
     case LPAREN:
-        expr_rec left_operand, right_operand;
-        op_rec op;
-
         primary(& left_operand);
         while(next_token() == PLUSOP || next_token() == MINUSOP ){
             add_op(& op);
@@ -489,6 +502,7 @@ void expression (expr_rec *result) {
         *result = left_operand;
         break;
     default:
+        syntax_error(t);
         break;
     }
 }
