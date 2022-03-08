@@ -495,14 +495,18 @@ void expression (expr_rec *result) {
             match(IFOP);
             primary(&else_case);
             *result = gen_if(first_operand, then_case, else_case);
-        } else
+        } else if (next_token() == PLUSOP || next_token() == MINUSOP)
         {
-            while(next_token() == PLUSOP || next_token() == MINUSOP ){
+            while(next_token() == PLUSOP || next_token() == MINUSOP){
                 add_op(& op);
                 primary(& right_operand);
                 first_operand = gen_infix(first_operand, op, right_operand);
             }
             *result = first_operand;
+        } else
+        {
+            printf("Syntax error");
+            exit(-1);
         }
         break;
     default:
