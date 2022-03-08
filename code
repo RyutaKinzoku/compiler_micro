@@ -1,4 +1,4 @@
 begin 
-R := (1 + f) -3;
+R := A + ((1|2|3));
 end 
 SCANEOF

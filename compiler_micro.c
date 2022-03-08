@@ -444,11 +444,15 @@ void add_op(op_rec *op){
 }
 
 char* get_label(string text){
-    static int max_label = 0;
+    static int max_label = 1;
+    string num;
+    static char buffer[33];
+    strcpy(buffer, text);
+    sprintf(num, "%d", max_label);
+    strcat(buffer, num);
     if(!strcmp(text, "continue"))
         max_label++;
-    sprintf(text, strcat(text, "%d"), max_label);
-    return text;
+    return buffer;
 }
 
 expr_rec gen_if(expr_rec condition, expr_rec then_case, expr_rec else_case){
