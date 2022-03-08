@@ -165,7 +165,9 @@ token scanner(void){
     }
 }
 
-
+const char* tokenNames[] = {"BEGIN", "END", "READ", "WRITE", "ID", "INTLITERAL", 
+    "LPAREN", "RPAREN", "SEMICOLON", "COMMA", "ASSIGNOP",
+    "PLUSOP", "MINUSOP", "IFOP", "SCANEOF"};
 //Right
 void match(token t){
     token s = scanner();
@@ -175,7 +177,10 @@ void match(token t){
         current_token = t;
     } else
     {
-        printf("Token not allowed.\n");
+        printf("Unexpected token ");
+        printf("%s, ", tokenNames[s]);
+        printf("Expected token ");
+        printf("%s\n", tokenNames[t]);
         exit(-1);
     }
 }
