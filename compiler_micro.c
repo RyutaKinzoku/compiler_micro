@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define MAXIDLEN 33
+#define MAXIDLEN 64
 
 typedef enum {FALSE = 0, TRUE} boolean;
 typedef enum token_types {
@@ -37,6 +37,10 @@ int symTabIndex = 0;
 FILE *micro_code;
 FILE *x86_code;
 
+const char* tokenNames[] = {"BEGIN", "END", "READ", "WRITE", "ID", "INTLITERAL", 
+    "LPAREN", "RPAREN", "SEMICOLON", "COMMA", "ASSIGNOP",
+    "PLUSOP", "MINUSOP", "IFOP", "SCANEOF"};
+
 //Right
 int compareToken(char a[], int size){
     if(size == token_buffer_index){
@@ -62,6 +66,12 @@ void clear_buffer(void){
 void buffer_char(char c){
     token_buffer[token_buffer_index] = c;
     token_buffer_index++;
+    if (token_buffer_index > MAXIDLEN)
+    {
+        printf("Identifier or literal is too long\n");
+        exit(-1);
+    }
+    
 }
 
 
@@ -164,10 +174,6 @@ token scanner(void){
             lexical_error(in_char);
     }
 }
-
-const char* tokenNames[] = {"BEGIN", "END", "READ", "WRITE", "ID", "INTLITERAL", 
-    "LPAREN", "RPAREN", "SEMICOLON", "COMMA", "ASSIGNOP",
-    "PLUSOP", "MINUSOP", "IFOP", "SCANEOF"};
 //Right
 void match(token t){
     token s = scanner();
@@ -238,7 +244,7 @@ char *get_temp(void)
 void start(void){
     /*Semantic initializations. */
     micro_code = fopen("code", "r");
-    x86_code = fopen("x86code", "w");
+    x86_code = fopen("x86code.s", "w");
     if (micro_code == NULL || x86_code == NULL){
         printf("Error! Could not open file\n");
         exit(-1);
@@ -363,20 +369,8 @@ token next_token(void){
             }
             return check_reserved();
         }else if (in_char == '('){
-            token t = LPAREN;
-            buffer_char(in_char);
-            for (c = getc(micro_code); !(c != '(' ^ c != ')'); c = getc(micro_code)){
-                if (c == '|')
-                {
-                    t = IFOP;
-                }
-                buffer_char(c);
-            }
-            ungetc(c, micro_code);
-            for (int i = token_buffer_index-1; i >= 0; i--){
-                ungetc(token_buffer[i], micro_code);
-            }
-            return t;
+            ungetc(in_char, micro_code);
+            return LPAREN;
         }
         else if (isdigit(in_char))
         {
@@ -394,6 +388,9 @@ token next_token(void){
         } else if (in_char == '-'){
             ungetc(in_char, micro_code);
             return MINUSOP;
+        } else if (in_char == '|'){
+            ungetc(in_char, micro_code);
+            return IFOP;
         } else if (in_char == ','){
             ungetc(in_char, micro_code);
             return COMMA;
@@ -412,7 +409,8 @@ void ident(expr_rec *t){
 
 //Right
 void syntax_error(token t){
-    printf("Syntax error \n");
+    printf("Syntax error with token ");
+    printf("%s \n", tokenNames[t]);
     exit(-1);
 }
 
@@ -451,7 +449,7 @@ void add_op(op_rec *op){
 char* get_label(string text){
     static int max_label = 1;
     string num;
-    static char buffer[33];
+    static char buffer[MAXIDLEN];
     strcpy(buffer, text);
     sprintf(num, "%d", max_label);
     strcat(buffer, num);
@@ -481,34 +479,31 @@ expr_rec gen_if(expr_rec condition, expr_rec then_case, expr_rec else_case){
 //Right
 void expression (expr_rec *result) {
     token t = next_token();
-    expr_rec condition, then_case, else_case;
-    expr_rec left_operand, right_operand;
+    expr_rec then_case, else_case;
+    expr_rec first_operand, right_operand;
     op_rec op;
     switch (t)
     {
-    case IFOP:
-        match(LPAREN);
-        match(INTLITERAL);
-        condition = process_literal();
-        match(IFOP);
-        match(INTLITERAL);
-        then_case = process_literal();
-        match(IFOP);
-        match(INTLITERAL);
-        else_case = process_literal();
-        match(RPAREN);
-        *result = gen_if(condition, then_case, else_case);
-        break;
     case ID:
     case INTLITERAL:
     case LPAREN:
-        primary(& left_operand);
-        while(next_token() == PLUSOP || next_token() == MINUSOP ){
-            add_op(& op);
-            primary(& right_operand);
-            left_operand = gen_infix(left_operand, op, right_operand);
+        primary(& first_operand);
+        if (next_token()==IFOP)
+        {
+            match(IFOP);
+            primary(&then_case);
+            match(IFOP);
+            primary(&else_case);
+            *result = gen_if(first_operand, then_case, else_case);
+        } else
+        {
+            while(next_token() == PLUSOP || next_token() == MINUSOP ){
+                add_op(& op);
+                primary(& right_operand);
+                first_operand = gen_infix(first_operand, op, right_operand);
+            }
+            *result = first_operand;
         }
-        *result = left_operand;
         break;
     default:
         syntax_error(t);
