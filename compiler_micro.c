@@ -36,6 +36,8 @@ string symbolTable[64];
 int symTabIndex = 0;
 FILE *micro_code;
 FILE *x86_code;
+char* declare_statements[64];
+int declare_index = 0;
 
 const char* tokenNames[] = {"BEGIN", "END", "READ", "WRITE", "ID", "INTLITERAL", 
     "LPAREN", "RPAREN", "SEMICOLON", "COMMA", "ASSIGNOP",
@@ -111,6 +113,9 @@ void lexical_error(char in_char){
     {
         printf("The character %c is not allowed. \n", in_char);
     }
+    FILE *x86_code;
+    x86_code = fopen("x86code.s", "w");
+    fclose(x86_code);
     exit(-1);
     
 }
@@ -235,6 +240,8 @@ void check_id(string s)
 {
     if(!lookup(s)){
         enter(s);
+        declare_statements[declare_index] = ""
+        strcpy(declare_statements[declare_index], extract_op(op));
         generate("Declare", s, "Integer", "");
     }
 }
@@ -430,6 +437,9 @@ void ident(expr_rec *t){
 void syntax_error(token t){
     printf("Syntax error with token ");
     printf("%s \n", tokenNames[t]);
+    FILE *x86_code;
+    x86_code = fopen("x86code.s", "w");
+    fclose(x86_code);
     exit(-1);
 }
 
