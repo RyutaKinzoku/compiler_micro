@@ -209,14 +209,22 @@ void enter(string s){
 
 //Right
 void generate(string opcode, string operand1, string operand2, string result){
+    FILE *x86_code;
+    x86_code = fopen("x86code.s", "w");
     printf("%s ", opcode);
+    fprintf(x86_code,"%s ", opcode);
     if(operand1!="")
         printf("%s", operand1);
+        fprintf(x86_code,"%s ", operand1);
     if(operand2!="")
         printf(",%s", operand2);
+        fprintf(x86_code,"%s ", operand2);
     if(result!="")
         printf(",%s", result);
+        fprintf(x86_code,"%s ", result);
     printf("\n");
+    fprintf(x86_code, "\n");
+    fclose(x86_code);
 }
 
 //Right
