@@ -213,15 +213,19 @@ void generate(string opcode, string operand1, string operand2, string result){
     x86_code = fopen("x86code.s", "w");
     printf("%s ", opcode);
     fprintf(x86_code,"%s ", opcode);
+    fprintf(x86_code, "\n");
     if(operand1!="")
         printf("%s", operand1);
         fprintf(x86_code,"%s ", operand1);
+        fprintf(x86_code, "\n");
     if(operand2!="")
         printf(",%s", operand2);
         fprintf(x86_code,"%s ", operand2);
+        fprintf(x86_code, "\n");
     if(result!="")
         printf(",%s", result);
         fprintf(x86_code,"%s ", result);
+        fprintf(x86_code, "\n");
     printf("\n");
     fprintf(x86_code, "\n");
     fclose(x86_code);
