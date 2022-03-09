@@ -235,14 +235,17 @@ void generate(string opcode, string operand1, string operand2, string result){
     fclose(x86_code);
 }
 
+void declare_id(string name){
+    sprintf(declare_statements[declare_index], "%s dq 0\n", name);
+    declare_index++;
+}
+
 //Right
 void check_id(string s)
 {
     if(!lookup(s)){
         enter(s);
-        declare_statements[declare_index] = ""
-        strcpy(declare_statements[declare_index], extract_op(op));
-        generate("Declare", s, "Integer", "");
+        declare_id(s);
     }
 }
 
