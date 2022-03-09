@@ -36,7 +36,7 @@ string symbolTable[64];
 int symTabIndex = 0;
 FILE *micro_code;
 FILE *x86_code;
-char* declare_statements[64];
+string declare_statements[64];
 int declare_index = 0;
 
 const char* tokenNames[] = {"BEGIN", "END", "READ", "WRITE", "ID", "INTLITERAL", 
@@ -236,7 +236,7 @@ void generate(string opcode, string operand1, string operand2, string result){
 }
 
 void declare_id(string name){
-    sprintf(declare_statements[declare_index], "%s dq 0\n", name);
+    sprintf(declare_statements[declare_index], "\t%s dq 0\n", name);
     declare_index++;
 }
 
@@ -282,7 +282,12 @@ void start(void){
 
 //Right
 void finish(void){
-    generate("Halt", "", "", "");
+    FILE *x86_code;
+    x86_code = fopen("x86code.s", "a+");
+    fprintf(x86_code, "%s", "section .data\n");
+    for(int i = 0; i < declare_index; i++)
+        fprintf(x86_code, "%s", declare_statements[i]);
+    fclose(x86_code);
 }
 
 char* extract(expr_rec source){
