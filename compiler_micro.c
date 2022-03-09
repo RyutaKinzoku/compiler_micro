@@ -603,18 +603,11 @@ void system_global(void){
 //Right
 int main()
 {
-    /*
-    char c;
-    c = fgetc(micro_code);
-    while (c != EOF)
-    {
-        printf("%c",c);
-        c=fgetc(micro_code);
-    }
-    fclose(x86_code);
-    fclose(micro_code);*/
-    
-    //printf(&micro_code);
     system_global();
+    //Linux Commands
+    char command[50];
+    printf("command: \n");
+    strcpy( command, "nasm -f elf64 -o x86code.o x86code.s" );
+    system(command);
     return 0;
 }
