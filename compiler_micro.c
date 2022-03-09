@@ -190,6 +190,9 @@ void match(token t){
         printf("%s, ", tokenNames[s]);
         printf("Expected token ");
         printf("%s\n", tokenNames[t]);
+        FILE *x86_code;
+        x86_code = fopen("x86code.s", "w");
+        fclose(x86_code);
         exit(-1);
     }
 }
@@ -530,7 +533,7 @@ void expression (expr_rec *result) {
             *result = first_operand;
         } else
         {
-            printf("Syntax error");
+            printf("Syntax error \n");
             FILE *x86_code;
             x86_code = fopen("x86code.s", "w");
             fclose(x86_code);
