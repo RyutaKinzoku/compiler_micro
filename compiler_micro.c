@@ -600,22 +600,21 @@ void system_global(void){
     finish();
 }
 
+void command(char c []){
+    char command[MAXIDLEN];
+    strcpy(command, c);
+    system(command);
+}
+
 //Right
 int main()
 {
+    printf("Compiling...\n\n");
     system_global();
     //Linux Commands
-    printf("Generating .o file...\n");
-    char o_command[50];
-    strcpy(o_command, "nasm -f elf64 -o x86code.o x86code.s" );
-    system(o_command);
-    printf("Generating executable file...\n");
-    char exe_command[50];
-    strcpy(exe_command, "ld -o exe x86code.o" );
-    system(exe_command);
+    command("nasm -f elf64 -o x86code.o x86code.s");
+    command("ld -o exe x86code.o");
     printf("Running program...\n\n");
-    char run_command[50];
-    strcpy(run_command, "./exe" );
-    system(run_command);
+    command("./exe");
     return 0;
 }
