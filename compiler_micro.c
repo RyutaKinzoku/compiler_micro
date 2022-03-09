@@ -607,15 +607,15 @@ int main()
     //Linux Commands
     printf("Generating .o file...\n");
     char o_command[50];
-    strcpy( o_command, "nasm -f elf64 -o x86code.o x86code.s" );
+    strcpy(o_command, "nasm -f elf64 -o x86code.o x86code.s" );
     system(o_command);
     printf("Generating executable file...\n");
     char exe_command[50];
-    strcpy( exe_command, "ld -o exe x86code.o" );
+    strcpy(exe_command, "ld -o exe x86code.o" );
     system(exe_command);
-    printf("Executing program...\n");
-    char exe_command[50];
-    strcpy( exe_command, "./exe" );
-    system(exe_command);
+    printf("Running program...\n\n");
+    char run_command[50];
+    strcpy(run_command, "./exe" );
+    system(run_command);
     return 0;
 }
