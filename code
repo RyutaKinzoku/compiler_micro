@@ -1,4 +1,4 @@
 begin 
-R := (ihfusd+b)|(r|k|d)|(d-e+b);
+R := d-e+b; rg 
 end 
 SCANEOF
