@@ -1,4 +1,4 @@
 begin 
-R := d-e+b; rg 
+R := d-e+b;
 end 
 SCANEOF

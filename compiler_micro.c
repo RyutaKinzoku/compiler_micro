@@ -263,6 +263,14 @@ void start(void){
         fclose(x86_code);
         exit(-1);
     }
+    FILE *x86_code;
+    x86_code = fopen("x86code.s", "a+");
+    fprintf(x86_code, "%s", "global _start\n");
+    fprintf(x86_code, "%s", "\n");
+    fprintf(x86_code, "%s", "section .text\n");
+    fprintf(x86_code, "%s", "\n");
+    fprintf(x86_code, "%s", "_start:\n");
+    fclose(x86_code);
 }
 
 //Right
