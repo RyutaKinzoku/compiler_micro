@@ -111,6 +111,9 @@ void lexical_error(char in_char){
     {
         printf("The character %c is not allowed. \n", in_char);
     }
+    FILE *x86_code;
+    x86_code = fopen("x86code.s", "w");
+    fclose(x86_code);
     exit(-1);
     
 }
@@ -255,6 +258,9 @@ void start(void){
     x86_code = fopen("x86code.s", "w");
     if (micro_code == NULL || x86_code == NULL){
         printf("Error! Could not open file\n");
+        FILE *x86_code;
+        x86_code = fopen("x86code.s", "w");
+        fclose(x86_code);
         exit(-1);
     }
 }
@@ -419,6 +425,9 @@ void ident(expr_rec *t){
 void syntax_error(token t){
     printf("Syntax error with token ");
     printf("%s \n", tokenNames[t]);
+    FILE *x86_code;
+    x86_code = fopen("x86code.s", "w");
+    fclose(x86_code);
     exit(-1);
 }
 
@@ -514,11 +523,15 @@ void expression (expr_rec *result) {
         } else
         {
             printf("Syntax error");
+            FILE *x86_code;
+            x86_code = fopen("x86code.s", "w");
+            fclose(x86_code);
             exit(-1);
         }
         break;
     default:
         syntax_error(t);
+        
         break;
     }
 }
