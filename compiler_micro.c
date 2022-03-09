@@ -3,7 +3,8 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define MAXIDLEN 64
+#define MAXIDLEN 65
+#define IDQUANTITY 300
 
 typedef enum {FALSE = 0, TRUE} boolean;
 typedef enum token_types {
@@ -29,14 +30,14 @@ typedef struct expression{
 
 extern token scanner(void);
 
-char token_buffer[64];
+char token_buffer[MAXIDLEN];
 int token_buffer_index = 0;
 token current_token;
-string symbolTable[64]; 
+string symbolTable[IDQUANTITY]; 
 int symTabIndex = 0;
 FILE *micro_code;
 FILE *x86_code;
-string declare_statements[64];
+char* declare_statements[IDQUANTITY][80];
 int declare_index = 0;
 
 const char* tokenNames[] = {"BEGIN", "END", "READ", "WRITE", "ID", "INTLITERAL", 
@@ -68,12 +69,14 @@ void clear_buffer(void){
 void buffer_char(char c){
     token_buffer[token_buffer_index] = c;
     token_buffer_index++;
-    if (token_buffer_index > MAXIDLEN)
+    if (token_buffer_index > MAXIDLEN-1)
     {
         printf("Identifier or literal is too long\n");
+        FILE *x86_code;
+        x86_code = fopen("x86code.s", "w");
+        fclose(x86_code);
         exit(-1);
     }
-    
 }
 
 
@@ -284,6 +287,7 @@ void start(void){
 void finish(void){
     FILE *x86_code;
     x86_code = fopen("x86code.s", "a+");
+    fprintf(x86_code, "%s", "\n");
     fprintf(x86_code, "%s", "section .data\n");
     for(int i = 0; i < declare_index; i++)
         fprintf(x86_code, "%s", declare_statements[i]);
