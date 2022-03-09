@@ -10,7 +10,7 @@ typedef enum token_types {
     BEGIN, END, READ, WRITE, ID, INTLITERAL, 
     LPAREN, RPAREN, SEMICOLON, COMMA, ASSIGNOP,
     PLUSOP, MINUSOP, IFOP, SCANEOF
-} token;
+} token; 
 typedef char string [MAXIDLEN];
 
 typedef struct operator{
