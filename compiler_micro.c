@@ -389,15 +389,14 @@ void read_id(expr_rec in_var){
     x86_code = fopen("x86code.s", "a+");
     fprintf(x86_code, "%s\n", "\tmov rdx, 64");
     fprintf(x86_code, "%s", "\tmov rsi, ");
-    fprintf(x86_code, "%s\n", in_var);
+    fprintf(x86_code, "%s\n", in_var.name);
     fprintf(x86_code, "%s\n", "\tmov rdi, 0");
     fprintf(x86_code, "%s\n", "\tmov rax, 0");
     fprintf(x86_code, "%s\n", "\tsyscall");
     fprintf(x86_code, "%s", "\tmov ");
-    fprintf(x86_code, "%s, ", in_var);
+    fprintf(x86_code, "%s, ", in_var.name);
     fprintf(x86_code, "%s\n", "rax");
     fclose(x86_code);
-    generate("Read", in_var.name, "Integer", "");
 }
 
 //Right
@@ -419,7 +418,15 @@ expr_rec process_literal(void){
 
 void write_expr(expr_rec out_expr)
 {
-    generate("Write", extract(out_expr), "Integer", "");
+    FILE *x86_code;
+    x86_code = fopen("x86code.s", "a+");
+    fprintf(x86_code, "%s\n", "\tmov rdx, 64");
+    fprintf(x86_code, "%s", "\tmov rsi, ");
+    fprintf(x86_code, "%s\n", extract(out_expr));
+    fprintf(x86_code, "%s\n", "\tmov rdi, 1");
+    fprintf(x86_code, "%s\n", "\tmov rax, 1");
+    fprintf(x86_code, "%s\n", "\tsyscall");
+    fclose(x86_code);
 }
 
 //Maybe
@@ -589,7 +596,7 @@ void expression (expr_rec *result) {
             primary(&then_case);
             match(IFOP);
             primary(&else_case);
-            *result = gen_if(first_operand, then_case, else_case);
+            first_operand = gen_if(first_operand, then_case, else_case);
         } else if (next_token() == PLUSOP || next_token() == MINUSOP)
         {
             while(next_token() == PLUSOP || next_token() == MINUSOP){
@@ -597,15 +604,8 @@ void expression (expr_rec *result) {
                 primary(& right_operand);
                 first_operand = gen_infix(first_operand, op, right_operand);
             }
-            *result = first_operand;
-        } else
-        {
-            printf("Syntax error \n");
-            FILE *x86_code;
-            x86_code = fopen("x86code.s", "w");
-            fclose(x86_code);
-            exit(-1);
-        }
+        } 
+        *result = first_operand;
         break;
     default:
         syntax_error(t);
