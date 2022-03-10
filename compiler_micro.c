@@ -378,6 +378,18 @@ expr_rec gen_infix(expr_rec e1, op_rec op, expr_rec e2)
 }
 
 void read_id(expr_rec in_var){
+    FILE *x86_code;
+    x86_code = fopen("x86code.s", "a+");
+    fprintf(x86_code, "%s\n", "\tmov rdx, 64");
+    fprintf(x86_code, "%s", "\tmov rsi, ");
+    fprintf(x86_code, "%s\n", in_var);
+    fprintf(x86_code, "%s\n", "\tmov rdi, 0");
+    fprintf(x86_code, "%s\n", "\tmov rax, 0");
+    fprintf(x86_code, "%s\n", "\tsyscall");
+    fprintf(x86_code, "%s", "\tmov ");
+    fprintf(x86_code, "%s, ", in_var);
+    fprintf(x86_code, "%s\n", "rax");
+    fclose(x86_code);
     generate("Read", in_var.name, "Integer", "");
 }
 
