@@ -311,15 +311,17 @@ char* extract(expr_rec source){
 char* extract_op(op_rec op){
     if (op.operator==MINUS)
     {
-        return "SUB";
+        return "sub";
     } else
     {
-        return "ADD";
+        return "add";
     }
 }
 
 //Right
 void assign(expr_rec target, expr_rec source){
+    string source_value;
+    strcpy(source_value, extract(source));
     generate("Store", extract(source), target.name, "");
 }
 
@@ -331,6 +333,20 @@ op_rec process_op(void){
     else 
         o.operator = MINUS;
     return o;
+}
+
+void arithmetic_operation(string o, string op1, string op2, string result){
+    FILE *x86_code;
+    x86_code = fopen("x86code.s", "a+");
+    fprintf(x86_code, "%s", "\tmov rax, ");
+    fprintf(x86_code, "%s\n", op1);
+    fprintf(x86_code, "\t%s", o);
+    fprintf(x86_code, "%s", " rax, ");
+    fprintf(x86_code, "%s\n", op2);
+    fprintf(x86_code, "%s", "\tmov ");
+    fprintf(x86_code, "%s", result);
+    fprintf(x86_code, "%s", ", rax\n");
+    fclose(x86_code);
 }
 
 //Right
@@ -356,7 +372,7 @@ expr_rec gen_infix(expr_rec e1, op_rec op, expr_rec e2)
         strcpy(o, extract_op(op));
         strcpy(ep1, extract(e1));
         strcpy(ep2, extract(e2));
-        generate(o, ep1, ep2, e_rec.name);
+        arithmetic_operation(o, ep1, ep2, e_rec.name);
     }
     return e_rec;
 }
