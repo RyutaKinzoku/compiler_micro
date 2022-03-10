@@ -554,26 +554,19 @@ expr_rec gen_if(expr_rec condition, expr_rec then_case, expr_rec else_case){
     fprintf(x86_code, "%s", "\tcmp ");
     fprintf(x86_code, "%s, ", extract(condition));
     fprintf(x86_code, "%s", "0\n");
-    //generate("Cmp", extract(condition), "0", "");
     fprintf(x86_code, "%s", "\tjnz ");
     fprintf(x86_code, "%s\n",  then_if);
-    //generate("Jnz", then_if, "", "");
     fprintf(x86_code, "%s", "\tjmp ");
     fprintf(x86_code, "%s\n", else_if);
-    //generate("Jmp", else_if, "", "");
     fprintf(x86_code, "\t%s:\n", then_if);
     fprintf(x86_code, "\tmov %s, ", e_rec.name);
     fprintf(x86_code, "%s\n", extract(then_case));
-    //generate(strcat(then_if, ":"), extract(then_case), e_rec.name, "");
     fprintf(x86_code, "%s", "\tJmp ");
     fprintf(x86_code, "%s\n", continue_if);
-    //generate("Jmp", continue_if, "", "");
     fprintf(x86_code, "\t%s:\n", else_if);
     fprintf(x86_code, "\tmov %s, ", e_rec.name);
     fprintf(x86_code, "%s\n", extract(else_case));
-    //generate(strcat(else_if, ":"), extract(else_case), e_rec.name, "");
     fprintf(x86_code, "\t%s:\n", continue_if);
-    //generate(strcat(continue_if, ":"), "", "", "");
     fclose(x86_code);
     return e_rec;
 }
