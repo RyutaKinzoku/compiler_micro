@@ -322,7 +322,14 @@ char* extract_op(op_rec op){
 void assign(expr_rec target, expr_rec source){
     string source_value;
     strcpy(source_value, extract(source));
-    generate("Store", extract(source), target.name, "");
+    FILE *x86_code;
+    x86_code = fopen("x86code.s", "a+");
+    fprintf(x86_code, "%s", "\tmov rax, ");
+    fprintf(x86_code, "%s\n", source_value);
+    fprintf(x86_code, "%s", "\tmov ");
+    fprintf(x86_code, "%s", target.name);
+    fprintf(x86_code, "%s", ", rax\n");
+    fclose(x86_code);
 }
 
 //Right
