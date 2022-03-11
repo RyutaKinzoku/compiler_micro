@@ -52,3 +52,4 @@ Mkfile.old
 dkms.conf
 exe
 compiler_micro
+x86code.s
