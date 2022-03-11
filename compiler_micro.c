@@ -695,7 +695,7 @@ expr_rec gen_if(expr_rec condition, expr_rec then_case, expr_rec else_case){
     fprintf(x86_code, "\t%s:\n", else_if);
     
     fprintf(x86_code, "\tmov %s, ", "rax");
-    if(then_case.kind == LITERALEXPR) fprintf(x86_code, "%s\n", extract(else_case));
+    if(else_case.kind == LITERALEXPR) fprintf(x86_code, "%s\n", extract(else_case));
     else fprintf(x86_code, "[%s]\n", extract(else_case));
     fprintf(x86_code, "\tmov [%s], rax\n", e_rec.name);
 
