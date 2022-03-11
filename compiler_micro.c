@@ -65,10 +65,24 @@ void clear_buffer(void){
 }
 
 
+
+#define INT_MAX 0x7fffffff
+
 //Right
 void buffer_char(char c){
     token_buffer[token_buffer_index] = c;
     token_buffer_index++;
+    if(isdigit(token_buffer[0])){
+        printf("%ld\n",atol(token_buffer));
+        if (atol(token_buffer)>INT_MAX)
+        {
+            printf("Literal is too long\n");
+            FILE *x86_code;
+            x86_code = fopen("x86code.s", "w");
+            fclose(x86_code);
+            exit(-1);
+        }
+    }
     if (token_buffer_index > MAXIDLEN-1)
     {
         printf("Identifier or literal is too long\n");
@@ -357,7 +371,6 @@ op_rec process_op(void){
 void arithmetic_operation(string o, string op1, string op2, string result){
     FILE *x86_code;
     x86_code = fopen("x86code.s", "a+");
-    printf("%s\n", op1);
     if (op1[0] < 48 || op1[0] > 57)
     {
         fprintf(x86_code, "%s", "\tmov rax, [");
