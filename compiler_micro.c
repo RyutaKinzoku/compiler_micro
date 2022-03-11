@@ -259,7 +259,7 @@ char *get_temp(void)
     static char tempname[MAXIDLEN];
 
     max_temp++;
-    sprintf(tempname, "Temp&%d", max_temp);
+    sprintf(tempname, "Temp%d", max_temp);
     check_id(tempname);
     return tempname;
 }
@@ -560,12 +560,14 @@ expr_rec gen_if(expr_rec condition, expr_rec then_case, expr_rec else_case){
     fprintf(x86_code, "%s\n", else_if);
     fprintf(x86_code, "\t%s:\n", then_if);
     fprintf(x86_code, "\tmov %s, ", e_rec.name);
-    fprintf(x86_code, "%s\n", extract(then_case));
+    if(then_case.kind == LITERALEXPR) fprintf(x86_code, "%s\n", extract(then_case));
+    else fprintf(x86_code, "[%s]\n", extract(then_case));
     fprintf(x86_code, "%s", "\tJmp ");
     fprintf(x86_code, "%s\n", continue_if);
     fprintf(x86_code, "\t%s:\n", else_if);
     fprintf(x86_code, "\tmov %s, ", e_rec.name);
-    fprintf(x86_code, "%s\n", extract(else_case));
+    if(then_case.kind == LITERALEXPR) fprintf(x86_code, "%s\n", extract(else_case));
+    else fprintf(x86_code, "[%s]\n", extract(else_case));
     fprintf(x86_code, "\t%s:\n", continue_if);
     fclose(x86_code);
     return e_rec;
