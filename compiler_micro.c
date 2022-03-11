@@ -268,7 +268,7 @@ char *get_temp(void)
 void start(void){
     /*Semantic initializations. */
     micro_code = fopen("code", "r");
-    x86_code = fopen("x86code.s", "w");
+    x86_code = fopen("x86code.s", "r");
     if (micro_code == NULL || x86_code == NULL){
         printf("Error! Could not open file\n");
         exit(-1);
@@ -711,21 +711,21 @@ void system_global(void){
     finish();
 }
 
+void command(char c []){
+    char command[MAXIDLEN];
+    strcpy(command, c);
+    system(command);
+}
+
 //Right
 int main()
 {
-    /*
-    char c;
-    c = fgetc(micro_code);
-    while (c != EOF)
-    {
-        printf("%c",c);
-        c=fgetc(micro_code);
-    }
-    fclose(x86_code);
-    fclose(micro_code);*/
-    
-    //printf(&micro_code);
+    printf("Compiling...\n\n");
     system_global();
+    //Linux Commands
+    command("nasm -f elf64 -o x86code.o x86code.s");
+    command("ld -o exe x86code.o");
+    printf("Running program...\n\n");
+    command("./exe");
     return 0;
 }
