@@ -305,6 +305,7 @@ void finish(void){
     fprintf(x86_code, "%s", "\n");
     fprintf(x86_code, "%s", "section .data\n");
     fprintf(x86_code, "%s", "\tnewline db 10\n");
+    fprintf(x86_code, "%s", "\tminus db 45\n");
     for(int i = 0; i < declare_index; i++)
         fprintf(x86_code, "%s", declare_statements[i]);
     fclose(x86_code);
@@ -341,11 +342,17 @@ void assign(expr_rec target, expr_rec source){
     FILE *x86_code;
     x86_code = fopen("x86code.s", "a+");
 
-    if (source_value[0] < 48 || source_value[0] > 57)
+    
+    if (source_value[0] == 45){
+        fprintf(x86_code, "%s", "\tmov rax, ");
+        fprintf(x86_code, "%s\n", source_value);
+    }
+    else if (source_value[0] < 48 || source_value[0] > 57)
     {
         fprintf(x86_code, "%s", "\tmov rax, [");
         fprintf(x86_code, "%s]\n", source_value);
-    } else
+    } 
+    else
     {
         fprintf(x86_code, "%s", "\tmov rax, ");
         fprintf(x86_code, "%s\n", source_value);
@@ -483,6 +490,22 @@ void write_expr(expr_rec out_expr)
     if(out_expr.kind == LITERALEXPR) fprintf(x86_code, "%s\n", extract(out_expr));
     else fprintf(x86_code, "[%s]\n", extract(out_expr));
     fprintf(x86_code, "%s", "\n");
+    
+    fprintf(x86_code, "%s\n", "\ttest rax, rax");
+    fprintf(x86_code, "%s", "\tjns ");
+    fprintf(x86_code, "%s\n", l_loop);
+    fprintf(x86_code, "%s\n", "\tmov rcx, minus");
+    fprintf(x86_code, "%s\n", "\tmov rdx, 1");
+    fprintf(x86_code, "%s\n", "\tmov rsi, rcx");
+    fprintf(x86_code, "%s\n", "\tmov rdi, 1");
+    fprintf(x86_code, "%s\n", "\tmov rax, 1");
+    fprintf(x86_code, "%s\n", "\tsyscall");
+    fprintf(x86_code, "%s\n", "\txor rax, rax");
+    fprintf(x86_code, "%s", "\tmov rax, ");
+    if(out_expr.kind == LITERALEXPR) fprintf(x86_code, "%s\n", extract(out_expr));
+    else fprintf(x86_code, "[%s]\n", extract(out_expr));
+    fprintf(x86_code, "%s\n", "\tneg rax");
+
     fprintf(x86_code, "\t%s:\n", l_loop);
     fprintf(x86_code, "%s\n", "\tmov rdx, 0");
     fprintf(x86_code, "%s\n", "\tmov rbx, 10");
