@@ -291,6 +291,7 @@ void finish(void){
     fprintf(x86_code, "%s", "\tsyscall\n");
     fprintf(x86_code, "%s", "\n");
     fprintf(x86_code, "%s", "section .data\n");
+    fprintf(x86_code, "%s", "\tnewline db 10\n");
     for(int i = 0; i < declare_index; i++)
         fprintf(x86_code, "%s", declare_statements[i]);
     fclose(x86_code);
@@ -356,6 +357,7 @@ op_rec process_op(void){
 void arithmetic_operation(string o, string op1, string op2, string result){
     FILE *x86_code;
     x86_code = fopen("x86code.s", "a+");
+    printf("%s\n", op1);
     if (op1[0] < 48 || op1[0] > 57)
     {
         fprintf(x86_code, "%s", "\tmov rax, [");
@@ -498,6 +500,13 @@ void write_expr(expr_rec out_expr)
     fprintf(x86_code, "%s\n", n_loop);
     fprintf(x86_code, "%s", "\n");
     fprintf(x86_code, "\t%s:\n", e_loop);
+    fprintf(x86_code, "%s\n", "\tmov rcx, newline");
+    fprintf(x86_code, "%s\n", "\tmov rdx, 1");
+    fprintf(x86_code, "%s\n", "\tmov rsi, rcx");
+    fprintf(x86_code, "%s\n", "\tmov rdi, 1");
+    fprintf(x86_code, "%s\n", "\tmov rax, 1");
+    fprintf(x86_code, "%s\n", "\tsyscall");
+    fprintf(x86_code, "%s", "\n");
     fclose(x86_code);
 }
 

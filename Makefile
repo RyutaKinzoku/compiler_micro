@@ -6,4 +6,3 @@ compiler: compiler_micro.c
 x86: x86code.s
 	nasm -f elf64 -o x86code.o x86code.s
 	ld -o exe x86code.o
-	./exe
