@@ -268,7 +268,7 @@ char *get_temp(void)
 void start(void){
     /*Semantic initializations. */
     micro_code = fopen("code", "r");
-    x86_code = fopen("x86code.s", "r");
+    x86_code = fopen("x86code.s", "w");
     if (micro_code == NULL || x86_code == NULL){
         printf("Error! Could not open file\n");
         exit(-1);
@@ -326,11 +326,20 @@ void assign(expr_rec target, expr_rec source){
     strcpy(source_value, extract(source));
     FILE *x86_code;
     x86_code = fopen("x86code.s", "a+");
-    fprintf(x86_code, "%s", "\tmov rax, ");
-    fprintf(x86_code, "%s\n", source_value);
-    fprintf(x86_code, "%s", "\tmov ");
+
+    if (source_value[0] < 48 || source_value[0] > 57)
+    {
+        fprintf(x86_code, "%s", "\tmov rax, [");
+        fprintf(x86_code, "%s]\n", source_value);
+    } else
+    {
+        fprintf(x86_code, "%s", "\tmov rax, ");
+        fprintf(x86_code, "%s\n", source_value);
+    }
+
+    fprintf(x86_code, "%s", "\tmov [");
     fprintf(x86_code, "%s", target.name);
-    fprintf(x86_code, "%s", ", rax\n");
+    fprintf(x86_code, "%s", "], rax\n");
     fclose(x86_code);
 }
 
