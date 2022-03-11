@@ -73,7 +73,6 @@ void buffer_char(char c){
     token_buffer[token_buffer_index] = c;
     token_buffer_index++;
     if(isdigit(token_buffer[0])){
-        printf("%ld\n",atol(token_buffer));
         if (atol(token_buffer)>INT_MAX)
         {
             printf("Literal is too long\n");
