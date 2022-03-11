@@ -667,23 +667,38 @@ expr_rec gen_if(expr_rec condition, expr_rec then_case, expr_rec else_case){
     strcpy(continue_if, get_label("continue"));
     FILE *x86_code;
     x86_code = fopen("x86code.s", "a+");
-    fprintf(x86_code, "%s", "\tcmp ");
-    fprintf(x86_code, "%s, ", extract(condition));
+    if (condition.kind == LITERALEXPR)
+    {
+        fprintf(x86_code, "\tmov rax, %s\n", extract(condition));
+        fprintf(x86_code, "%s", "\tcmp ");
+        fprintf(x86_code, "%s, ", "rax");
+    } else
+    {
+        fprintf(x86_code, "%s", "\tcmp ");
+        fprintf(x86_code, "qword[%s], ", extract(condition));
+    }
     fprintf(x86_code, "%s", "0\n");
+
     fprintf(x86_code, "%s", "\tjnz ");
     fprintf(x86_code, "%s\n",  then_if);
     fprintf(x86_code, "%s", "\tjmp ");
     fprintf(x86_code, "%s\n", else_if);
     fprintf(x86_code, "\t%s:\n", then_if);
-    fprintf(x86_code, "\tmov %s, ", e_rec.name);
+
+    fprintf(x86_code, "\tmov %s, ", "rax");
     if(then_case.kind == LITERALEXPR) fprintf(x86_code, "%s\n", extract(then_case));
     else fprintf(x86_code, "[%s]\n", extract(then_case));
+    fprintf(x86_code, "\tmov [%s], rax\n", e_rec.name);
+
     fprintf(x86_code, "%s", "\tJmp ");
     fprintf(x86_code, "%s\n", continue_if);
     fprintf(x86_code, "\t%s:\n", else_if);
-    fprintf(x86_code, "\tmov %s, ", e_rec.name);
+    
+    fprintf(x86_code, "\tmov %s, ", "rax");
     if(then_case.kind == LITERALEXPR) fprintf(x86_code, "%s\n", extract(else_case));
     else fprintf(x86_code, "[%s]\n", extract(else_case));
+    fprintf(x86_code, "\tmov [%s], rax\n", e_rec.name);
+
     fprintf(x86_code, "\t%s:\n", continue_if);
     fclose(x86_code);
     return e_rec;
