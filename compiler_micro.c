@@ -442,7 +442,7 @@ void read_id(expr_rec in_var){
     fprintf(x86_code, "%s\n", "\tmov rax, 0");
     fprintf(x86_code, "%s\n", "\tsyscall");
     fprintf(x86_code, "%s", "\tmov ");
-    fprintf(x86_code, "%s, ", in_var.name);
+    fprintf(x86_code, "[%s], ", in_var.name);
     fprintf(x86_code, "%s\n", "rax");
     fclose(x86_code);
 }
