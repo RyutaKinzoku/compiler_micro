@@ -287,6 +287,8 @@ void start(void){
 void finish(void){
     FILE *x86_code;
     x86_code = fopen("x86code.s", "a+");
+    fprintf(x86_code, "%s", "\tmov rax, 60\n");
+    fprintf(x86_code, "%s", "\tsyscall\n");
     fprintf(x86_code, "%s", "\n");
     fprintf(x86_code, "%s", "section .data\n");
     for(int i = 0; i < declare_index; i++)
@@ -345,14 +347,30 @@ op_rec process_op(void){
 void arithmetic_operation(string o, string op1, string op2, string result){
     FILE *x86_code;
     x86_code = fopen("x86code.s", "a+");
-    fprintf(x86_code, "%s", "\tmov rax, ");
-    fprintf(x86_code, "%s\n", op1);
+    if (op1[0] < 48 || op1[0] > 57)
+    {
+        fprintf(x86_code, "%s", "\tmov rax, [");
+        fprintf(x86_code, "%s]\n", op1);
+    } else
+    {    
+        fprintf(x86_code, "%s", "\tmov rax, ");
+        fprintf(x86_code, "%s\n", op1);
+    }
     fprintf(x86_code, "\t%s", o);
-    fprintf(x86_code, "%s", " rax, ");
-    fprintf(x86_code, "%s\n", op2);
-    fprintf(x86_code, "%s", "\tmov ");
+    if (op2[0] < 48 || op2[0] > 57)
+    {
+        fprintf(x86_code, "%s", "\trax, [");
+        fprintf(x86_code, "%s]\n", op2);
+    } else
+    {    
+        fprintf(x86_code, "%s", "\trax, ");
+        fprintf(x86_code, "%s\n", op2);
+    }
+
+    fprintf(x86_code, "%s", "\tmov [");
     fprintf(x86_code, "%s", result);
-    fprintf(x86_code, "%s", ", rax\n");
+    
+    fprintf(x86_code, "%s", "], rax\n");
     fclose(x86_code);
 }
 
