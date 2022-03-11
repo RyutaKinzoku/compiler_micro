@@ -443,16 +443,61 @@ expr_rec process_literal(void){
     return t;
 }
 
+char* get_loop_labels(string text){
+    static int max_loop_label = 1;
+    string num;
+    static char loop_buffer[MAXIDLEN];
+    strcpy(loop_buffer, text);
+    sprintf(num, "%d", max_loop_label);
+    strcat(loop_buffer, num);
+    if(!strcmp(text, "e"))
+        max_loop_label++;
+    return loop_buffer;
+}
+
 void write_expr(expr_rec out_expr)
 {
+    string l_loop, n_loop, e_loop;
     FILE *x86_code;
+    strcpy(l_loop, get_loop_labels("l"));
+    strcpy(n_loop, get_loop_labels("n"));
+    strcpy(e_loop, get_loop_labels("e"));
+    
     x86_code = fopen("x86code.s", "a+");
-    fprintf(x86_code, "%s\n", "\tmov rdx, 64");
-    fprintf(x86_code, "%s", "\tmov rsi, ");
-    fprintf(x86_code, "%s\n", extract(out_expr));
+    fprintf(x86_code, "%s\n", "\txor r8, r8");
+    fprintf(x86_code, "%s", "\tmov rax, ");
+    if(out_expr.kind == LITERALEXPR) fprintf(x86_code, "%s\n", extract(out_expr));
+    else fprintf(x86_code, "[%s]\n", extract(out_expr));
+    fprintf(x86_code, "%s", "\n");
+    fprintf(x86_code, "\t%s:\n", l_loop);
+    fprintf(x86_code, "%s\n", "\tmov rdx, 0");
+    fprintf(x86_code, "%s\n", "\tmov rbx, 10");
+    fprintf(x86_code, "%s\n", "\tdiv rbx");
+    fprintf(x86_code, "%s\n", "\tadd rdx, '0'");
+    fprintf(x86_code, "%s\n", "\tpush rdx");
+    fprintf(x86_code, "%s\n", "\tinc r8");
+    fprintf(x86_code, "%s\n", "\tcmp rax, 0");
+    fprintf(x86_code, "%s", "\tjz ");
+    fprintf(x86_code, "%s\n", n_loop);
+    fprintf(x86_code, "%s", "\tjmp ");
+    fprintf(x86_code, "%s\n", l_loop);
+    fprintf(x86_code, "%s", "\n");
+    fprintf(x86_code, "\t%s:\n", n_loop);
+    fprintf(x86_code, "%s\n", "\tcmp r8, 0");
+    fprintf(x86_code, "%s", "\tjz ");
+    fprintf(x86_code, "%s\n", e_loop);
+    fprintf(x86_code, "%s\n", "\tdec r8");
+    fprintf(x86_code, "%s\n", "\tmov rcx, rsp");
+    fprintf(x86_code, "%s\n", "\tmov rdx, 1");
+    fprintf(x86_code, "%s\n", "\tmov rsi, rcx");
     fprintf(x86_code, "%s\n", "\tmov rdi, 1");
     fprintf(x86_code, "%s\n", "\tmov rax, 1");
     fprintf(x86_code, "%s\n", "\tsyscall");
+    fprintf(x86_code, "%s\n", "\tadd rsp, 8");
+    fprintf(x86_code, "%s", "\tjmp ");
+    fprintf(x86_code, "%s\n", n_loop);
+    fprintf(x86_code, "%s", "\n");
+    fprintf(x86_code, "\t%s:\n", e_loop);
     fclose(x86_code);
 }
 
