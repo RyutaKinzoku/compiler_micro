@@ -439,17 +439,17 @@ char* get_read_label(string text){
     strcpy(read_buffer, text);
     sprintf(num, "%d", max_read_label);
     strcat(read_buffer, num);
-    if(!strcmp(text, "f"))
+    if(!strcmp(text, "fi"))
         max_read_label++;
     return read_buffer;
 }
 
 void read_id(expr_rec in_var){
-    string a_loop, re_loop, f_loop;
+    string be_loop, re_loop, fi_loop;
     FILE *x86_code;
-    strcpy(a_loop, get_read_label("a"));
+    strcpy(be_loop, get_read_label("be"));
     strcpy(re_loop, get_read_label("re"));
-    strcpy(f_loop, get_read_label("f"));
+    strcpy(fi_loop, get_read_label("fi"));
     x86_code = fopen("x86code.s", "a+");
     fprintf(x86_code, "%s\n", "\tmov rdx, 64");
     fprintf(x86_code, "%s", "\tmov rsi, ");
@@ -462,13 +462,13 @@ void read_id(expr_rec in_var){
     fprintf(x86_code, "%s\n", "\txor rbx, rbx");
     fprintf(x86_code, "%s\n\n", "\txor r8, r8");
 
-    fprintf(x86_code, "\t%s:\n", a_loop);
+    fprintf(x86_code, "\t%s:\n", be_loop);
     fprintf(x86_code, "%s", "\tmov rcx, [");
     fprintf(x86_code, "%s+r8]\n\n", in_var.name);
 
     fprintf(x86_code, "\t%s:\n", re_loop);
     fprintf(x86_code, "%s", "\tcmp rcx, 0\n");
-    fprintf(x86_code, "\tjz %s\n", f_loop);
+    fprintf(x86_code, "\tjz %s\n", fi_loop);
     fprintf(x86_code, "%s", "\tmov bl, cl\n");
     fprintf(x86_code, "%s", "\tshr rcx, 8\n");
     fprintf(x86_code, "%s", "\tcmp rbx, '0'\n");
@@ -480,10 +480,10 @@ void read_id(expr_rec in_var){
     fprintf(x86_code, "%s", "\tadd rax, rbx\n");
     fprintf(x86_code, "\tjmp %s\n\n", re_loop);
 
-    fprintf(x86_code, "\t%s:\n", f_loop);
+    fprintf(x86_code, "\t%s:\n", fi_loop);
     fprintf(x86_code, "%s", "\tadd r8, 8\n");
     fprintf(x86_code, "%s", "\tcmp r8, 9\n");
-    fprintf(x86_code, "\tjb %s\n\n", a_loop);
+    fprintf(x86_code, "\tjb %s\n\n", be_loop);
 
     fprintf(x86_code, "\tmov [%s], rax\n\n", in_var.name);
     fclose(x86_code);
