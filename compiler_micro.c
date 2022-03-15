@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 #define MAXIDLEN 65
-#define IDQUANTITY 300
+#define IDQUANTITY 1024
 
 typedef enum {FALSE = 0, TRUE} boolean;
 typedef enum token_types {
@@ -230,6 +230,14 @@ int lookup(string s){
 void enter(string s){
     strcpy(symbolTable[symTabIndex], s);
     symTabIndex++;
+    if (symTabIndex > IDQUANTITY)
+    {
+        printf("Too many symbols\n");
+        x86_code = fopen("x86code.s", "w");
+        fclose(x86_code);
+        exit(-1);
+    }
+    
 }
 
 //Right
@@ -273,13 +281,6 @@ char *get_temp(void)
     static char tempname[MAXIDLEN];
 
     max_temp++;
-    if (max_temp > 256)
-    {
-        printf("Program too long\n");
-        x86_code = fopen("x86code.s", "w");
-        fclose(x86_code);
-        exit(-1);
-    }
     
     sprintf(tempname, "Temp%d", max_temp);
     check_id(tempname);
