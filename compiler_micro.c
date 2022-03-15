@@ -44,7 +44,7 @@ const char* tokenNames[] = {"BEGIN", "END", "READ", "WRITE", "ID", "INTLITERAL",
     "LPAREN", "RPAREN", "SEMICOLON", "COMMA", "ASSIGNOP",
     "PLUSOP", "MINUSOP", "IFOP", "SCANEOF"};
 
-//Right
+
 int compareToken(char a[], int size){
     if(size == token_buffer_index){
         for(int i = 0; i<size; i++){
@@ -58,7 +58,7 @@ int compareToken(char a[], int size){
 }
 
 
-//Right
+
 void clear_buffer(void){
     memset(token_buffer, 0, sizeof token_buffer);
     token_buffer_index = 0;
@@ -69,7 +69,7 @@ void clear_buffer(void){
 #define INT_MAX 0x7fffffff
 #define INT_MIN -2147483648
 
-//Right
+
 void buffer_char(char c){
     token_buffer[token_buffer_index] = c;
     token_buffer_index++;
@@ -94,7 +94,7 @@ void buffer_char(char c){
 }
 
 
-//Right
+
 token check_reserved(){
     char a[] = {'b','e','g','i','n'};
     char b[] = {'e','n','d'};
@@ -121,7 +121,7 @@ token check_reserved(){
     }
 }
 
-//Right
+
 void lexical_error(char in_char){
     if (in_char == ':')
     {
@@ -137,7 +137,7 @@ void lexical_error(char in_char){
     
 }
 
-//Right
+
 token scanner(void){
     int in_char, c;
 
@@ -196,7 +196,7 @@ token scanner(void){
             lexical_error(in_char);
     }
 }
-//Right
+
 void match(token t){
     token s = scanner();
     
@@ -216,7 +216,7 @@ void match(token t){
     }
 }
 
-//Right
+
 int lookup(string s){
     for(int i = 0; i<symTabIndex; i++){
         if(!strcmp(s, symbolTable[i])){
@@ -226,7 +226,7 @@ int lookup(string s){
     return 0;
 }
 
-//Right
+
 void enter(string s){
     strcpy(symbolTable[symTabIndex], s);
     symTabIndex++;
@@ -240,7 +240,7 @@ void enter(string s){
     
 }
 
-//Right
+
 void generate(string opcode, string operand1, string operand2, string result){
     FILE *x86_code;
     x86_code = fopen("x86code.s", "a+");
@@ -265,7 +265,7 @@ void declare_id(string name){
     declare_index++;
 }
 
-//Right
+
 void check_id(string s)
 {
     if(!lookup(s)){
@@ -274,7 +274,7 @@ void check_id(string s)
     }
 }
 
-//Right
+
 char *get_temp(void)
 {
     static int max_temp = 0;
@@ -287,7 +287,7 @@ char *get_temp(void)
     return tempname;
 }
 
-//Right
+
 void start(void){
     /*Semantic initializations. */
     micro_code = fopen("code", "r");
@@ -305,7 +305,7 @@ void start(void){
     fclose(x86_code);
 }
 
-//Right
+
 void finish(void){
     FILE *x86_code;
     x86_code = fopen("x86code.s", "a+");
@@ -344,7 +344,7 @@ char* extract_op(op_rec op){
     }
 }
 
-//Right
+
 void assign(expr_rec target, expr_rec source){
     string source_value;
     strcpy(source_value, extract(source));
@@ -373,7 +373,7 @@ void assign(expr_rec target, expr_rec source){
     fclose(x86_code);
 }
 
-//Right
+
 op_rec process_op(void){
     op_rec o;
     if (current_token == PLUSOP)
@@ -437,7 +437,7 @@ int overflow(int val1, int val2, op_rec op){
     
 }
 
-//Right
+
 expr_rec gen_infix(expr_rec e1, op_rec op, expr_rec e2)
 {
     expr_rec e_rec;
@@ -518,7 +518,7 @@ void read_id(expr_rec in_var){
     fclose(x86_code);
 }
 
-//Right
+
 expr_rec process_id(void){
     expr_rec t;
     check_id(token_buffer);
@@ -527,7 +527,7 @@ expr_rec process_id(void){
     return t;
 }
 
-//Right
+
 expr_rec process_literal(void){
     expr_rec t;
     t.kind = LITERALEXPR;
@@ -668,13 +668,13 @@ token next_token(void){
     }
 }
 
-//Right
+
 void ident(expr_rec *t){
     match(ID);
     *t = process_id();
 }
 
-//Right
+
 void syntax_error(token t){
     printf("Syntax error with token ");
     printf("%s \n", tokenNames[t]);
@@ -705,7 +705,7 @@ void primary(expr_rec *e_rec){
     }
 }
 
-//Right
+
 void add_op(op_rec *op){
     token tok = next_token();
     if (tok == PLUSOP || tok == MINUSOP){
@@ -775,7 +775,7 @@ expr_rec gen_if(expr_rec condition, expr_rec then_case, expr_rec else_case){
     return e_rec;
 }
 
-//Right
+
 void expression (expr_rec *result) {
     token t = next_token();
     expr_rec then_case, else_case;
@@ -901,7 +901,7 @@ void command(char c []){
     system(command);
 }
 
-//Right
+
 int main()
 {
     printf("Compiling...\n\n");
