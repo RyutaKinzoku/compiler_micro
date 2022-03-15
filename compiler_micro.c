@@ -67,6 +67,7 @@ void clear_buffer(void){
 
 
 #define INT_MAX 0x7fffffff
+#define INT_MIN -2147483648
 
 //Right
 void buffer_char(char c){
@@ -272,6 +273,14 @@ char *get_temp(void)
     static char tempname[MAXIDLEN];
 
     max_temp++;
+    if (max_temp > 256)
+    {
+        printf("Program too long\n");
+        x86_code = fopen("x86code.s", "w");
+        fclose(x86_code);
+        exit(-1);
+    }
+    
     sprintf(tempname, "Temp%d", max_temp);
     check_id(tempname);
     return tempname;
@@ -286,7 +295,6 @@ void start(void){
         printf("Error! Could not open file\n");
         exit(-1);
     }
-    FILE *x86_code;
     x86_code = fopen("x86code.s", "a+");
     fprintf(x86_code, "%s", "global _start\n");
     fprintf(x86_code, "%s", "\n");
@@ -404,6 +412,30 @@ void arithmetic_operation(string o, string op1, string op2, string result){
     fclose(x86_code);
 }
 
+int overflow(int val1, int val2, op_rec op){
+    long result, lval1, lval2;
+    lval1 = (long) val1;
+    lval2 = (long) val2;
+    if (op.operator == PLUS)
+    {
+        result = lval1 + lval2;
+    } else
+    {
+        result = lval1 - lval2;
+    }
+    if (result > INT_MAX || result < INT_MIN)
+    {
+        printf("Integer overflow\n");
+        FILE *x86_code;
+        x86_code = fopen("x86code.s", "w");
+        fclose(x86_code);
+        exit(-1);
+    }
+    
+    return (int) result;
+    
+}
+
 //Right
 expr_rec gen_infix(expr_rec e1, op_rec op, expr_rec e2)
 {
@@ -412,13 +444,7 @@ expr_rec gen_infix(expr_rec e1, op_rec op, expr_rec e2)
     if (e1.kind == LITERALEXPR && e2.kind == LITERALEXPR)
     {
         e_rec.kind = LITERALEXPR;
-        if (op.operator == PLUS)
-        {
-            e_rec.value = e1.value + e2.value;
-        } else
-        {
-            e_rec.value = e1.value - e2.value;
-        }
+        e_rec.value = overflow(e1.value, e2.value, op);
     } else
     {
         e_rec.kind = TEMPEXPR;
@@ -460,6 +486,7 @@ void read_id(expr_rec in_var){
 
     fprintf(x86_code, "%s\n", "\txor rax, rax");
     fprintf(x86_code, "%s\n", "\txor rbx, rbx");
+    fprintf(x86_code, "%s\n", "\txor rcx, rcx");
     fprintf(x86_code, "%s\n\n", "\txor r8, r8");
 
     fprintf(x86_code, "\t%s:\n", be_loop);
@@ -485,6 +512,7 @@ void read_id(expr_rec in_var){
     fprintf(x86_code, "%s", "\tcmp r8, 9\n");
     fprintf(x86_code, "\tjb %s\n\n", be_loop);
 
+    fprintf(x86_code, "\tmov qword [%s], 0\n\n", in_var.name);
     fprintf(x86_code, "\tmov [%s], rax\n\n", in_var.name);
     fclose(x86_code);
 }
