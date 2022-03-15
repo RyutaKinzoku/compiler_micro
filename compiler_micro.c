@@ -10,7 +10,7 @@ typedef enum {FALSE = 0, TRUE} boolean;
 typedef enum token_types {
     BEGIN, END, READ, WRITE, ID, INTLITERAL, 
     LPAREN, RPAREN, SEMICOLON, COMMA, ASSIGNOP,
-    PLUSOP, MINUSOP, IFOP, SCANEOF
+    PLUSOP, MINUSOP, IFOP, SCANEOF,COMMENT
 } token;
 typedef char string [MAXIDLEN];
 
@@ -42,7 +42,7 @@ int declare_index = 0;
 
 const char* tokenNames[] = {"BEGIN", "END", "READ", "WRITE", "ID", "INTLITERAL", 
     "LPAREN", "RPAREN", "SEMICOLON", "COMMA", "ASSIGNOP",
-    "PLUSOP", "MINUSOP", "IFOP", "SCANEOF"};
+    "PLUSOP", "MINUSOP", "IFOP", "SCANEOF", "COMMENT"};
 
 
 int compareToken(char a[], int size){
@@ -188,6 +188,7 @@ token scanner(void){
                 do
                     in_char = getc(micro_code);
                 while (in_char != '\n');
+                return COMMENT;
             } else {
                 ungetc(c, micro_code);
                 return MINUSOP;
@@ -653,8 +654,16 @@ token next_token(void){
             ungetc(in_char, micro_code);
             return PLUSOP;
         } else if (in_char == '-'){
-            ungetc(in_char, micro_code);
-            return MINUSOP;
+            c = getc(micro_code);
+            if (c == '-'){
+                ungetc(c, micro_code);
+                ungetc(in_char, micro_code);
+                return COMMENT;
+            } else {
+                ungetc(c, micro_code);
+                ungetc(in_char, micro_code);
+                return MINUSOP;
+            }
         } else if (in_char == '|'){
             ungetc(in_char, micro_code);
             return IFOP;
@@ -712,8 +721,9 @@ void add_op(op_rec *op){
         match(tok);
         *op = process_op();
     }
-    else
+    else{
         syntax_error(tok);
+    }
 }
 
 char* get_label(string text){
@@ -861,6 +871,9 @@ void statement (void)
         match(RPAREN);
         match(SEMICOLON);
         break;
+    case COMMENT:
+        match(COMMENT);
+        break;
     default:
         syntax_error(tok);
         break;
@@ -874,6 +887,7 @@ void statement_list(void){
         case ID:
         case READ:
         case WRITE:
+        case COMMENT:
             statement();
             break;
         default:
